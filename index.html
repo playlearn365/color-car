@@ -16,6 +16,7 @@
       background: #ddd;
       border: 2px solid #333;
       margin-top: 10px;
+      touch-action: none; /* 禁止瀏覽器捲動干擾 */
     }
     #controls {
       margin-top: 10px;
@@ -40,8 +41,6 @@
   <p>分數：<span id="score">0</span>，錯誤：<span id="mistakes">0</span> / 3</p>
   <canvas id="gameCanvas" width="400" height="500"></canvas>
   <div id="controls">
-    <button id="leftBtn">← 左</button>
-    <button id="rightBtn">右 →</button>
     <button id="restartBtn" style="display:none;">重新開始</button>
   </div>
   <script>
@@ -85,6 +84,7 @@
     let showX = false;
     let showXTimer = 0;
     let gameOver = false;
+    let dragging = false;
 
     function resetColorCard() {
       colorCard = {
@@ -136,7 +136,7 @@
           mistakes++;
           mistakesDisplay.textContent = mistakes;
           showX = true;
-          showXTimer = 30; // 30 frame
+          showXTimer = 30;
         }
         nextRound();
       }
@@ -183,23 +183,46 @@
       requestAnimationFrame(gameLoop);
     }
 
-    // 觸控
-    document.getElementById("leftBtn").addEventListener("touchstart", () => {
-      if (car.lane > 0 && !gameOver) car.lane--;
-    });
-    document.getElementById("rightBtn").addEventListener("touchstart", () => {
-      if (car.lane < 2 && !gameOver) car.lane++;
+    // 觸控「拖曳」車子
+    canvas.addEventListener("touchstart", (e) => {
+      const touchX = e.touches[0].clientX;
+      const touchY = e.touches[0].clientY;
+      const rect = canvas.getBoundingClientRect();
+      const x = touchX - rect.left;
+      const y = touchY - rect.top;
+
+      const carX = car.lane * (canvas.width/3) + (canvas.width/3)/2 - car.width/2;
+      if (
+        x >= carX &&
+        x <= carX + car.width &&
+        y >= car.y &&
+        y <= car.y + car.height
+      ) {
+        dragging = true;
+      }
     });
 
-    // 鍵盤
-    document.addEventListener("keydown", e => {
-      if (gameOver) return;
-      if (e.key === "ArrowLeft" && car.lane > 0) car.lane--;
-      if (e.key === "ArrowRight" && car.lane < 2) car.lane++;
+    canvas.addEventListener("touchmove", (e) => {
+      if (dragging && !gameOver) {
+        const touchX = e.touches[0].clientX;
+        const rect = canvas.getBoundingClientRect();
+        const x = touchX - rect.left;
+
+        if (x < canvas.width/3) {
+          car.lane = 0;
+        } else if (x < canvas.width * 2/3) {
+          car.lane = 1;
+        } else {
+          car.lane = 2;
+        }
+      }
+    });
+
+    canvas.addEventListener("touchend", () => {
+      dragging = false;
     });
 
     restartBtn.addEventListener("click", () => {
-      // 重置遊戲
       score = 0;
       mistakes = 0;
       scoreDisplay.textContent = score;
