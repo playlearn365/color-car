@@ -2,237 +2,692 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>顏色卡片賽車遊戲</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>顏色賽車</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
   <style>
-    body {
-      text-align: center;
-      background: #f0f0f0;
-      font-family: Arial;
-      margin: 0;
-      padding: 0;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red: #FF3B30;
+      --green: #34C759;
+      --yellow: #FFD60A;
+      --bg: #1a1a2e;
+      --surface: #16213e;
+      --card: #0f3460;
+      --text: #eaeaea;
+      --accent: #e94560;
     }
-    canvas {
-      background: #ddd;
-      border: 2px solid #333;
-      margin-top: 10px;
-      touch-action: none; /* 禁止瀏覽器捲動干擾 */
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Nunito', sans-serif;
+      touch-action: none;
+      user-select: none;
     }
-    #controls {
-      margin-top: 10px;
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      max-width: 430px;
+      margin: 0 auto;
+      position: relative;
     }
-    button {
+
+    /* ── HUD ── */
+    #hud {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px 8px;
+      background: var(--surface);
+      border-bottom: 2px solid #ffffff10;
+      flex-shrink: 0;
+    }
+
+    #hud .stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    #hud .label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      opacity: .5;
+    }
+
+    #hud .value {
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    #mistakesDisplay {
+      display: flex;
+      gap: 5px;
+    }
+
+    .heart {
+      font-size: 22px;
+      transition: transform .2s;
+    }
+    .heart.lost { filter: grayscale(1); opacity: .3; }
+
+    /* ── Target bar ── */
+    #targetBar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 10px 18px;
+      background: var(--card);
+      flex-shrink: 0;
+      border-bottom: 2px solid #ffffff10;
+    }
+
+    #targetBar .label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      opacity: .55;
+    }
+
+    #colorSwatch {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 3px solid #ffffff40;
+      transition: background .3s, transform .2s;
+      flex-shrink: 0;
+    }
+    #colorSwatch.pulse {
+      animation: swatchPulse .35s ease;
+    }
+    @keyframes swatchPulse {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.35); }
+      100% { transform: scale(1); }
+    }
+
+    #targetName {
       font-size: 20px;
-      padding: 10px 20px;
-      margin: 5px;
+      font-weight: 900;
+      min-width: 70px;
+      text-align: left;
     }
-    .colorBox {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      vertical-align: middle;
-      border: 1px solid #333;
+
+    /* ── Canvas wrapper ── */
+    #canvasWrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
     }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ── Swipe arrows ── */
+    #arrows {
+      position: absolute;
+      bottom: 0;
+      left: 0; right: 0;
+      display: flex;
+      pointer-events: none;
+      height: 56px;
+      justify-content: space-between;
+      padding: 0 24px;
+      align-items: center;
+    }
+
+    .arrow-hint {
+      font-size: 28px;
+      opacity: .15;
+    }
+
+    /* ── Overlay (game over / start) ── */
+    #overlay {
+      position: absolute;
+      inset: 0;
+      background: #0008;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      backdrop-filter: blur(6px);
+      z-index: 10;
+    }
+
+    #overlay h2 {
+      font-size: 36px;
+      font-weight: 900;
+      text-align: center;
+      line-height: 1.1;
+    }
+
+    #overlay .big-score {
+      font-size: 72px;
+      font-weight: 900;
+      color: var(--yellow);
+      line-height: 1;
+    }
+
+    #overlay .sub {
+      font-size: 15px;
+      opacity: .6;
+    }
+
+    #playBtn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 20px;
+      font-weight: 900;
+      padding: 16px 48px;
+      cursor: pointer;
+      letter-spacing: .5px;
+      box-shadow: 0 4px 24px #e9456066;
+      transition: transform .15s, box-shadow .15s;
+    }
+
+    #playBtn:active { transform: scale(.95); box-shadow: none; }
+
+    /* ── Feedback toast ── */
+    #toast {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(.8);
+      font-size: 52px;
+      font-weight: 900;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 9;
+      transition: none;
+    }
+    #toast.show {
+      animation: toastAnim .5s ease forwards;
+    }
+    @keyframes toastAnim {
+      0%   { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+      70%  { opacity: 1; transform: translate(-50%,-80%) scale(1.2); }
+      100% { opacity: 0; transform: translate(-50%,-100%) scale(1); }
+    }
+
+    /* ── Combo badge ── */
+    #combo {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      font-size: 13px;
+      font-weight: 900;
+      background: var(--yellow);
+      color: #1a1a2e;
+      padding: 4px 10px;
+      border-radius: 999px;
+      opacity: 0;
+      transition: opacity .3s;
+      z-index: 8;
+    }
+    #combo.visible { opacity: 1; }
   </style>
 </head>
 <body>
-  <h1>顏色卡片賽車遊戲</h1>
-  <p>目標顏色：<span class="colorBox" id="colorBox"></span> <span id="targetColor">red</span></p>
-  <p>分數：<span id="score">0</span>，錯誤：<span id="mistakes">0</span> / 3</p>
-  <canvas id="gameCanvas" width="400" height="500"></canvas>
-  <div id="controls">
-    <button id="restartBtn" style="display:none;">重新開始</button>
+<div id="app">
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="stat">
+      <div class="label">分數</div>
+      <div class="value" id="scoreDisplay">0</div>
+    </div>
+    <div class="stat">
+      <div class="label">命</div>
+      <div id="mistakesDisplay">
+        <span class="heart" id="h0">❤️</span>
+        <span class="heart" id="h1">❤️</span>
+        <span class="heart" id="h2">❤️</span>
+      </div>
+    </div>
   </div>
-  <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
 
-    const targetColorDisplay = document.getElementById("targetColor");
-    const colorBox = document.getElementById("colorBox");
-    const scoreDisplay = document.getElementById("score");
-    const mistakesDisplay = document.getElementById("mistakes");
-    const restartBtn = document.getElementById("restartBtn");
+  <!-- Target -->
+  <div id="targetBar">
+    <div class="label">目標</div>
+    <div id="colorSwatch"></div>
+    <div id="targetName"></div>
+  </div>
 
-    const colors = [
-      { color: "red", name: "red" },
-      { color: "green", name: "green" },
-      { color: "yellow", name: "yellow" }
-    ];
+  <!-- Game canvas -->
+  <div id="canvasWrap">
+    <canvas id="gameCanvas"></canvas>
+    <div id="arrows">
+      <span class="arrow-hint">◀</span>
+      <span class="arrow-hint">▶</span>
+    </div>
+    <div id="toast"></div>
+    <div id="combo"></div>
 
-    const successSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_6f9d1f2898.mp3");
+    <!-- Overlay -->
+    <div id="overlay">
+      <h2>顏色<br>賽車</h2>
+      <div class="big-score" id="finalScore" style="display:none"></div>
+      <div class="sub" id="overlayMsg">滑動或點擊車道<br>撞對顏色的卡片！</div>
+      <button id="playBtn">開始遊戲</button>
+    </div>
+  </div>
 
-    let currentTarget = colors[Math.floor(Math.random() * colors.length)];
-    colorBox.style.background = currentTarget.color;
-    targetColorDisplay.textContent = currentTarget.name;
+</div>
 
-    const car = {
-      lane: 1,
-      y: canvas.height - 80,
-      width: 40,
-      height: 60
-    };
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const wrap = document.getElementById('canvasWrap');
 
-    let colorCard = {
-      lane: Math.floor(Math.random() * 3),
-      color: colors[Math.floor(Math.random() * colors.length)].color,
-      y: -40,
-      speed: 3
-    };
+// ── Resize canvas to fill wrapper ──
+function resizeCanvas() {
+  canvas.width  = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
-    let score = 0;
-    let mistakes = 0;
-    let showX = false;
-    let showXTimer = 0;
-    let gameOver = false;
-    let dragging = false;
+// ── Color definitions ──
+const COLORS = [
+  { id: 'red',    hex: '#FF3B30', name: '紅色' },
+  { id: 'green',  hex: '#34C759', name: '綠色' },
+  { id: 'yellow', hex: '#FFD60A', name: '黃色' },
+];
 
-    function resetColorCard() {
-      colorCard = {
-        lane: Math.floor(Math.random() * 3),
-        color: colors[Math.floor(Math.random() * colors.length)].color,
-        y: -40,
-        speed: 3
-      };
-    }
+// ── State ──
+let score, mistakes, combo, gameRunning, animId;
+let car, cards, particles, roadOffset;
+let target;
 
-    function drawLanes() {
-      for (let i = 1; i < 3; i++) {
-        ctx.beginPath();
-        ctx.moveTo(i * (canvas.width/3), 0);
-        ctx.lineTo(i * (canvas.width/3), canvas.height);
-        ctx.strokeStyle = "black";
-        ctx.stroke();
+// ── UI refs ──
+const scoreEl    = document.getElementById('scoreDisplay');
+const heartsEl   = [document.getElementById('h0'), document.getElementById('h1'), document.getElementById('h2')];
+const swatchEl   = document.getElementById('colorSwatch');
+const nameEl     = document.getElementById('targetName');
+const overlay    = document.getElementById('overlay');
+const finalScoreEl = document.getElementById('finalScore');
+const overlayMsg = document.getElementById('overlayMsg');
+const playBtn    = document.getElementById('playBtn');
+const toastEl    = document.getElementById('toast');
+const comboEl    = document.getElementById('combo');
+
+function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// ── Init / reset ──
+function initGame() {
+  score  = 0;
+  mistakes = 0;
+  combo  = 0;
+  cards  = [];
+  particles = [];
+  roadOffset = 0;
+
+  car = { lane: 1, x: 0, y: 0, w: 0, h: 0, wobble: 0 };
+
+  target = rand(COLORS);
+  updateTargetUI();
+  updateHUD();
+
+  spawnCard();
+  gameRunning = true;
+
+  overlay.style.display = 'none';
+  cancelAnimationFrame(animId);
+  loop();
+}
+
+function updateTargetUI() {
+  swatchEl.style.background = target.hex;
+  nameEl.textContent = target.name;
+  nameEl.style.color = target.hex;
+  swatchEl.classList.remove('pulse');
+  void swatchEl.offsetWidth;
+  swatchEl.classList.add('pulse');
+}
+
+function updateHUD() {
+  scoreEl.textContent = score;
+  heartsEl.forEach((h, i) => {
+    h.classList.toggle('lost', i >= (3 - mistakes));
+  });
+}
+
+// ── Card spawning ──
+const CARD_INTERVAL = 90; // frames between auto-spawns (if needed)
+let framesSinceSpawn = 0;
+
+function spawnCard() {
+  const lane = Math.floor(Math.random() * 3);
+  const color = rand(COLORS);
+  cards.push({ lane, color, y: -60, speed: 4 + score * 0.18 });
+  framesSinceSpawn = 0;
+}
+
+// ── Particles ──
+function spawnParticles(x, y, color, count = 16) {
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 * i) / count + Math.random() * .5;
+    const speed = 2 + Math.random() * 4;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 2,
+      life: 1,
+      decay: .035 + Math.random() * .02,
+      r: 4 + Math.random() * 4,
+      color,
+    });
+  }
+}
+
+// ── Main loop ──
+function loop() {
+  if (!gameRunning) return;
+  animId = requestAnimationFrame(loop);
+
+  const W = canvas.width;
+  const H = canvas.height;
+  const laneW = W / 3;
+  const carW = laneW * .45;
+  const carH = carW * 1.5;
+  car.w = carW; car.h = carH;
+  car.x = car.lane * laneW + laneW / 2;
+  car.y = H - carH - 24;
+
+  // ── Draw background / road ──
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, 0, W, H);
+
+  // road surface
+  ctx.fillStyle = '#232338';
+  ctx.fillRect(0, 0, W, H);
+
+  // scrolling road stripes
+  roadOffset = (roadOffset + 6) % 80;
+  ctx.strokeStyle = '#ffffff18';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([40, 40]);
+  ctx.lineDashOffset = -roadOffset;
+  for (let l = 1; l < 3; l++) {
+    ctx.beginPath();
+    ctx.moveTo(l * laneW, 0);
+    ctx.lineTo(l * laneW, H);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // edge lines
+  ctx.strokeStyle = '#ffffff30';
+  ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W, 0); ctx.lineTo(W, H); ctx.stroke();
+
+  // ── Spawn logic ──
+  framesSinceSpawn++;
+  if (cards.length === 0 || (cards.length < 2 && framesSinceSpawn > 55)) {
+    spawnCard();
+  }
+
+  // ── Cards ──
+  cards.forEach(card => {
+    card.y += card.speed;
+    const cx = card.lane * laneW + laneW / 2;
+    const cw = laneW * .55;
+    const ch = cw;
+
+    // shadow
+    ctx.fillStyle = '#00000040';
+    ctx.beginPath();
+    ctx.roundRect(cx - cw/2 + 4, card.y + 4, cw, ch, 12);
+    ctx.fill();
+
+    // card body
+    ctx.fillStyle = card.color.hex;
+    ctx.beginPath();
+    ctx.roundRect(cx - cw/2, card.y, cw, ch, 12);
+    ctx.fill();
+
+    // shine
+    const grad = ctx.createLinearGradient(cx - cw/2, card.y, cx, card.y + ch/2);
+    grad.addColorStop(0, '#ffffff30');
+    grad.addColorStop(1, '#ffffff00');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect(cx - cw/2, card.y, cw, ch, 12);
+    ctx.fill();
+  });
+
+  // ── Car ──
+  const carX = car.x;
+  const carY = car.y;
+  const carLerp = laneW * car.lane + laneW/2; // snap done in input handler
+
+  // shadow
+  ctx.fillStyle = '#00000060';
+  ctx.beginPath();
+  ctx.ellipse(carX, carY + carH + 4, carW * .4, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // body
+  ctx.fillStyle = '#4f8ef7';
+  ctx.beginPath();
+  ctx.roundRect(carX - carW/2, carY, carW, carH, [10, 10, 6, 6]);
+  ctx.fill();
+
+  // windshield
+  ctx.fillStyle = '#a8d4ff80';
+  ctx.beginPath();
+  ctx.roundRect(carX - carW/2 + 6, carY + 8, carW - 12, carH * .3, 6);
+  ctx.fill();
+
+  // wheels
+  [[-1, .15], [1, .15], [-1, .75], [1, .75]].forEach(([sx, sy]) => {
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.roundRect(carX + sx * (carW/2 + 4) - 5, carY + sy * carH, 10, 16, 3);
+    ctx.fill();
+  });
+
+  // ── Collision check ──
+  cards = cards.filter(card => {
+    const cx = card.lane * laneW + laneW / 2;
+    const cw = laneW * .55;
+    const ch = cw;
+
+    // miss (fell off screen)
+    if (card.y > H + 10) {
+      if (card.color.id === target.id) {
+        // missed correct card
+        mistakes++;
+        updateHUD();
+        combo = 0;
+        updateCombo();
+        showToast('💨', card.lane * laneW + laneW/2, H * .4);
+        checkGameOver();
+        nextTarget();
       }
+      return false;
     }
 
-    function drawCar() {
-      const x = car.lane * (canvas.width/3) + (canvas.width/3)/2 - car.width/2;
-      ctx.fillStyle = "blue";
-      ctx.fillRect(x, car.y, car.width, car.height);
-      if (showX) {
-        ctx.fillStyle = "red";
-        ctx.font = "40px Arial";
-        ctx.fillText("X", x + 10, car.y + 40);
-      }
-    }
+    // collision with car
+    if (card.lane === car.lane) {
+      const cardBottom = card.y + ch;
+      const cardTop    = card.y;
+      const carTop     = carY;
+      const carBottom  = carY + carH;
 
-    function drawColorCard() {
-      const x = colorCard.lane * (canvas.width/3) + (canvas.width/3)/2 - 20;
-      ctx.fillStyle = colorCard.color;
-      ctx.fillRect(x, colorCard.y, 40, 40);
-    }
+      if (cardBottom >= carTop && cardTop <= carBottom) {
+        const hitX = cx;
+        const hitY = card.y + ch/2;
 
-    function checkCollision() {
-      if (
-        car.lane === colorCard.lane &&
-        colorCard.y + 40 >= car.y &&
-        colorCard.y <= car.y + car.height
-      ) {
-        if (colorCard.color === currentTarget.color) {
-          successSound.play();
-          score++;
-          scoreDisplay.textContent = score;
+        if (card.color.id === target.id) {
+          // ✅ correct!
+          combo++;
+          score += combo > 2 ? 2 : 1;
+          updateHUD();
+          updateCombo();
+          spawnParticles(hitX, hitY, card.color.hex, 20);
+          showToast('✓', hitX, hitY);
         } else {
+          // ❌ wrong
           mistakes++;
-          mistakesDisplay.textContent = mistakes;
-          showX = true;
-          showXTimer = 30;
+          combo = 0;
+          updateHUD();
+          updateCombo();
+          spawnParticles(hitX, hitY, '#FF3B30', 12);
+          showToast('✗', hitX, hitY);
+          checkGameOver();
         }
-        nextRound();
+        nextTarget();
+        return false;
       }
     }
+    return true;
+  });
 
-    function nextRound() {
-      currentTarget = colors[Math.floor(Math.random() * colors.length)];
-      colorBox.style.background = currentTarget.color;
-      targetColorDisplay.textContent = currentTarget.name;
-      resetColorCard();
-    }
+  // ── Particles ──
+  particles = particles.filter(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += .15;
+    p.life -= p.decay;
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    return p.life > 0;
+  });
 
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawLanes();
-      drawColorCard();
-      drawCar();
-      if (!gameOver) checkCollision();
-    }
+  // ── Win condition ──
+  if (score >= 15) {
+    endGame(true);
+  }
+}
 
-    function update() {
-      if (!gameOver) {
-        colorCard.y += colorCard.speed;
-        if (colorCard.y > canvas.height) {
-          nextRound();
-        }
-        if (showX) {
-          showXTimer--;
-          if (showXTimer <= 0) {
-            showX = false;
-          }
-        }
-        if (mistakes >= 3 || score >= 10) {
-          gameOver = true;
-          alert(`遊戲結束！分數：${score}`);
-          restartBtn.style.display = "inline-block";
-        }
-      }
-    }
+function nextTarget() {
+  target = rand(COLORS);
+  updateTargetUI();
+}
 
-    function gameLoop() {
-      draw();
-      update();
-      requestAnimationFrame(gameLoop);
-    }
+function checkGameOver() {
+  if (mistakes >= 3) {
+    endGame(false);
+  }
+}
 
-    // 觸控「拖曳」車子
-    canvas.addEventListener("touchstart", (e) => {
-      const touchX = e.touches[0].clientX;
-      const touchY = e.touches[0].clientY;
-      const rect = canvas.getBoundingClientRect();
-      const x = touchX - rect.left;
-      const y = touchY - rect.top;
+function endGame(win) {
+  gameRunning = false;
+  overlay.style.display = 'flex';
+  finalScoreEl.style.display = 'block';
+  finalScoreEl.textContent = score;
+  overlayMsg.textContent = win ? '🎉 完美通關！' : `闖關失敗，加油！`;
+  playBtn.textContent = '再玩一次';
+}
 
-      const carX = car.lane * (canvas.width/3) + (canvas.width/3)/2 - car.width/2;
-      if (
-        x >= carX &&
-        x <= carX + car.width &&
-        y >= car.y &&
-        y <= car.y + car.height
-      ) {
-        dragging = true;
-      }
-    });
+// ── Toast feedback ──
+let toastTimeout;
+function showToast(text, x, y) {
+  clearTimeout(toastTimeout);
+  toastEl.textContent = text;
+  toastEl.style.left = x + 'px';
+  toastEl.style.top  = y + 'px';
+  toastEl.style.transform = 'translate(-50%,-50%) scale(.8)';
+  toastEl.classList.remove('show');
+  void toastEl.offsetWidth;
+  toastEl.classList.add('show');
+  toastTimeout = setTimeout(() => toastEl.classList.remove('show'), 600);
+}
 
-    canvas.addEventListener("touchmove", (e) => {
-      if (dragging && !gameOver) {
-        const touchX = e.touches[0].clientX;
-        const rect = canvas.getBoundingClientRect();
-        const x = touchX - rect.left;
+// ── Combo display ──
+function updateCombo() {
+  if (combo >= 2) {
+    comboEl.textContent = `🔥 x${combo} 連擊`;
+    comboEl.classList.add('visible');
+  } else {
+    comboEl.classList.remove('visible');
+  }
+}
 
-        if (x < canvas.width/3) {
-          car.lane = 0;
-        } else if (x < canvas.width * 2/3) {
-          car.lane = 1;
-        } else {
-          car.lane = 2;
-        }
-      }
-    });
+// ── Input: touch swipe / tap ──
+let touchStartX = 0, touchStartY = 0;
+let isDragging = false;
 
-    canvas.addEventListener("touchend", () => {
-      dragging = false;
-    });
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  isDragging = false;
+}, { passive: false });
 
-    restartBtn.addEventListener("click", () => {
-      score = 0;
-      mistakes = 0;
-      scoreDisplay.textContent = score;
-      mistakesDisplay.textContent = mistakes;
-      gameOver = false;
-      restartBtn.style.display = "none";
-      nextRound();
-    });
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (!gameRunning) return;
+  isDragging = true;
+  const dx = e.touches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 20) {
+    if (dx > 0 && car.lane < 2) { car.lane++; touchStartX = e.touches[0].clientX; }
+    if (dx < 0 && car.lane > 0) { car.lane--; touchStartX = e.touches[0].clientX; }
+  }
+}, { passive: false });
 
-    gameLoop();
-  </script>
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (!gameRunning || isDragging) return;
+  // tap to lane
+  const rect = canvas.getBoundingClientRect();
+  const tx = e.changedTouches[0].clientX - rect.left;
+  const laneW = canvas.width / 3;
+  car.lane = Math.min(2, Math.floor(tx / laneW));
+}, { passive: false });
+
+// ── Keyboard fallback ──
+document.addEventListener('keydown', e => {
+  if (!gameRunning) return;
+  if (e.key === 'ArrowLeft'  && car.lane > 0) car.lane--;
+  if (e.key === 'ArrowRight' && car.lane < 2) car.lane++;
+});
+
+// ── Start button ──
+playBtn.addEventListener('click', initGame);
+
+// ── Polyfill roundRect for older browsers ──
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    const rad = typeof r === 'number' ? [r,r,r,r] : r;
+    this.moveTo(x + rad[0], y);
+    this.lineTo(x + w - rad[1], y);
+    this.quadraticCurveTo(x + w, y, x + w, y + rad[1]);
+    this.lineTo(x + w, y + h - rad[2]);
+    this.quadraticCurveTo(x + w, y + h, x + w - rad[2], y + h);
+    this.lineTo(x + rad[3], y + h);
+    this.quadraticCurveTo(x, y + h, x, y + h - rad[3]);
+    this.lineTo(x, y + rad[0]);
+    this.quadraticCurveTo(x, y, x + rad[0], y);
+    this.closePath();
+    return this;
+  };
+}
+</script>
 </body>
 </html>
