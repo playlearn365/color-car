@@ -476,36 +476,133 @@ function loop() {
     ctx.fill();
   });
 
-  // ── Car ──
+  // ── Car (cute top-down cartoon) ──
   const carX = car.x;
   const carY = car.y;
-  const carLerp = laneW * car.lane + laneW/2; // snap done in input handler
+
+  function rr(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, r);
+  }
+
+  const bw = carW;       // body width
+  const bh = carH;       // body height
+  const bx = carX - bw/2;
+  const by = carY;
 
   // shadow
-  ctx.fillStyle = '#00000060';
+  ctx.fillStyle = '#00000050';
   ctx.beginPath();
-  ctx.ellipse(carX, carY + carH + 4, carW * .4, 8, 0, 0, Math.PI * 2);
+  ctx.ellipse(carX, by + bh/2 + 6, bw * .45, bh * .18, 0, 0, Math.PI * 2);
   ctx.fill();
+
+  // wheels (drawn first, behind body)
+  const ww = bw * .22, wh = bh * .22, wr = 4;
+  ctx.fillStyle = '#1a1a1a';
+  // front-left
+  rr(bx - ww + 3, by + bh * .08, ww, wh, wr); ctx.fill();
+  // front-right
+  rr(bx + bw - 3, by + bh * .08, ww, wh, wr); ctx.fill();
+  // rear-left
+  rr(bx - ww + 3, by + bh * .70, ww, wh, wr); ctx.fill();
+  // rear-right
+  rr(bx + bw - 3, by + bh * .70, ww, wh, wr); ctx.fill();
+
+  // wheel shine
+  ctx.fillStyle = '#444';
+  rr(bx - ww + 5, by + bh * .09, ww - 4, wh - 4, 3); ctx.fill();
+  rr(bx + bw - 1, by + bh * .09, ww - 4, wh - 4, 3); ctx.fill();
+  rr(bx - ww + 5, by + bh * .71, ww - 4, wh - 4, 3); ctx.fill();
+  rr(bx + bw - 1, by + bh * .71, ww - 4, wh - 4, 3); ctx.fill();
 
   // body
-  ctx.fillStyle = '#4f8ef7';
+  ctx.fillStyle = '#FF3B30';
+  rr(bx, by, bw, bh, 14); ctx.fill();
+
+  // body side stripes
+  ctx.fillStyle = '#CC1A10';
+  ctx.fillRect(bx, by + bh * .42, bw, bh * .16);
+  rr(bx, by, bw, bh, 14);
+  ctx.clip(); // clip stripes inside body shape
+  ctx.fillStyle = '#CC1A10';
+  ctx.fillRect(bx, by + bh * .42, bw, bh * .16);
+  ctx.restore(); ctx.save();
+
+  // windshield (front, top area)
+  ctx.fillStyle = '#A8D8FF';
+  ctx.globalAlpha = 0.85;
+  rr(bx + bw * .12, by + bh * .07, bw * .76, bh * .26, 8); ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // windshield shine
+  ctx.fillStyle = '#ffffff55';
   ctx.beginPath();
-  ctx.roundRect(carX - carW/2, carY, carW, carH, [10, 10, 6, 6]);
+  ctx.ellipse(bx + bw * .3, by + bh * .14, bw * .14, bh * .07, -0.3, 0, Math.PI * 2);
   ctx.fill();
 
-  // windshield
-  ctx.fillStyle = '#a8d4ff80';
-  ctx.beginPath();
-  ctx.roundRect(carX - carW/2 + 6, carY + 8, carW - 12, carH * .3, 6);
-  ctx.fill();
+  // rear window (bottom area)
+  ctx.fillStyle = '#A8D8FF';
+  ctx.globalAlpha = 0.6;
+  rr(bx + bw * .16, by + bh * .68, bw * .68, bh * .20, 7); ctx.fill();
+  ctx.globalAlpha = 1;
 
-  // wheels
-  [[-1, .15], [1, .15], [-1, .75], [1, .75]].forEach(([sx, sy]) => {
-    ctx.fillStyle = '#222';
-    ctx.beginPath();
-    ctx.roundRect(carX + sx * (carW/2 + 4) - 5, carY + sy * carH, 10, 16, 3);
-    ctx.fill();
-  });
+  // roof center panel
+  ctx.fillStyle = '#BB1A10';
+  ctx.globalAlpha = 0.55;
+  rr(bx + bw * .14, by + bh * .34, bw * .72, bh * .32, 6); ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // headlights (two glowing dots at front)
+  ctx.fillStyle = '#FFFAAA';
+  ctx.shadowColor = '#FFEE88';
+  ctx.shadowBlur = 8;
+  ctx.beginPath(); ctx.arc(bx + bw * .22, by + bh * .10, bw * .09, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(bx + bw * .78, by + bh * .10, bw * .09, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // tail lights (red glow at rear)
+  ctx.fillStyle = '#FF2200';
+  ctx.shadowColor = '#FF2200';
+  ctx.shadowBlur = 6;
+  ctx.beginPath(); ctx.arc(bx + bw * .22, by + bh * .90, bw * .08, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(bx + bw * .78, by + bh * .90, bw * .08, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // cute face — eyes
+  // left eye
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(bx + bw * .30, by + bh * .20, bw * .13, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1a1aee';
+  ctx.beginPath(); ctx.arc(bx + bw * .30, by + bh * .21, bw * .08, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#000';
+  ctx.beginPath(); ctx.arc(bx + bw * .30, by + bh * .21, bw * .045, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(bx + bw * .27, by + bh * .185, bw * .025, 0, Math.PI * 2); ctx.fill();
+
+  // right eye
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(bx + bw * .70, by + bh * .20, bw * .13, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1a1aee';
+  ctx.beginPath(); ctx.arc(bx + bw * .70, by + bh * .21, bw * .08, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#000';
+  ctx.beginPath(); ctx.arc(bx + bw * .70, by + bh * .21, bw * .045, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(bx + bw * .67, by + bh * .185, bw * .025, 0, Math.PI * 2); ctx.fill();
+
+  // smile
+  ctx.strokeStyle = '#CC1A10';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(carX, by + bh * .285, bw * .18, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+
+  // blush cheeks
+  ctx.fillStyle = '#FF8888';
+  ctx.globalAlpha = 0.3;
+  ctx.beginPath(); ctx.ellipse(bx + bw * .18, by + bh * .275, bw * .10, bh * .04, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(bx + bw * .82, by + bh * .275, bw * .10, bh * .04, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = 1;
 
   // ── Collision check ──
   cards = cards.filter(card => {
