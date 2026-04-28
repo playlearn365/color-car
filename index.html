@@ -483,6 +483,7 @@ function loop() {
         combo = 0;
         updateHUD(); updateCombo();
         showToast('💨', cx, H * .5);
+        sfxMiss();
         checkGameOver();
         if (gameRunning) { nextTarget(); spawnCard(); }
       }
@@ -500,6 +501,7 @@ function loop() {
           updateHUD(); updateCombo();
           spawnParticles(hitX, hitY, card.color.hex, 22);
           showToast('✓', hitX, hitY);
+          if (combo > 2) sfxCombo(); else sfxCorrect();
           if (score >= 15) { endGame(true); return false; }
         } else {
           mistakes++;
@@ -507,6 +509,7 @@ function loop() {
           updateHUD(); updateCombo();
           spawnParticles(hitX, hitY, '#FF3B30', 14);
           showToast('✗', hitX, hitY);
+          sfxWrong();
           checkGameOver();
         }
         if (gameRunning) { nextTarget(); spawnCard(); }
@@ -542,6 +545,7 @@ function checkGameOver() {
 
 function endGame(win) {
   gameRunning = false;
+  setTimeout(() => win ? sfxWin() : sfxLose(), 80);
   overlay.style.display = 'flex';
   howtoEl.style.display = 'none';
   overlayTitle.textContent = win ? '🎉 過關！' : '遊戲結束';
@@ -608,6 +612,58 @@ document.addEventListener('keydown', e => {
   if ((e.key === 'ArrowLeft'  || e.key === 'a') && car.lane > 0) car.lane--;
   if ((e.key === 'ArrowRight' || e.key === 'd') && car.lane < 2) car.lane++;
 });
+
+// ── Audio ──
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let actx = null;
+function getACtx() {
+  if (!actx) actx = new AudioCtx();
+  return actx;
+}
+function playTone({ freq, freq2, type='sine', duration=0.2, gain=0.22, attack=0.008, decay=0.18, delay=0 }) {
+  const ac  = getACtx();
+  const osc = ac.createOscillator();
+  const env = ac.createGain();
+  const now = ac.currentTime + delay;
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, now);
+  if (freq2) osc.frequency.exponentialRampToValueAtTime(freq2, now + duration);
+  env.gain.setValueAtTime(0, now);
+  env.gain.linearRampToValueAtTime(gain, now + attack);
+  env.gain.exponentialRampToValueAtTime(0.001, now + attack + decay);
+  osc.connect(env); env.connect(ac.destination);
+  osc.start(now); osc.stop(now + duration + 0.05);
+}
+
+// 撞對：清脆上升三和弦 C5-E5-G5
+function sfxCorrect() {
+  [523, 659, 784].forEach((f, i) =>
+    playTone({ freq: f, type: 'triangle', gain: 0.16, attack: 0.005, decay: 0.2, duration: 0.22, delay: i * 0.055 })
+  );
+}
+// 連擊：加一顆高閃音
+function sfxCombo() {
+  playTone({ freq: 1047, freq2: 1319, type: 'sine', gain: 0.13, attack: 0.005, decay: 0.28, duration: 0.3 });
+}
+// 撞錯：低沉降調
+function sfxWrong() {
+  playTone({ freq: 220, freq2: 140, type: 'sawtooth', gain: 0.10, attack: 0.005, decay: 0.2, duration: 0.24 });
+}
+// 漏掉：輕柔滑落
+function sfxMiss() {
+  playTone({ freq: 420, freq2: 260, type: 'sine', gain: 0.09, attack: 0.01, decay: 0.28, duration: 0.32 });
+}
+// 過關：琶音上升 C-E-G-C'
+function sfxWin() {
+  [523, 659, 784, 1047].forEach((f, i) =>
+    playTone({ freq: f, type: 'triangle', gain: 0.17, attack: 0.005, decay: 0.38, duration: 0.42, delay: i * 0.1 })
+  );
+}
+// 結束：兩聲下沉
+function sfxLose() {
+  playTone({ freq: 330, freq2: 220, type: 'triangle', gain: 0.14, attack: 0.01, decay: 0.42, duration: 0.46 });
+  playTone({ freq: 220, freq2: 140, type: 'triangle', gain: 0.11, attack: 0.01, decay: 0.52, duration: 0.52, delay: 0.38 });
+}
 
 // ── Start ──
 playBtn.addEventListener('click', initGame);
