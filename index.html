@@ -7,253 +7,135 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --red: #FF3B30;
-      --green: #34C759;
-      --yellow: #FFD60A;
-      --bg: #1a1a2e;
-      --surface: #16213e;
-      --card: #0f3460;
-      --text: #eaeaea;
-      --accent: #e94560;
+      --red: #FF3B30; --green: #34C759; --yellow: #FFD60A;
+      --bg: #1a1a2e; --surface: #16213e; --card: #0f3460;
+      --text: #eaeaea; --accent: #e94560;
     }
-
     html, body {
-      height: 100%;
-      overflow: hidden;
-      background: var(--bg);
-      color: var(--text);
+      height: 100%; overflow: hidden;
+      background: var(--bg); color: var(--text);
       font-family: 'Nunito', sans-serif;
-      touch-action: none;
-      user-select: none;
+      touch-action: none; user-select: none;
     }
-
     #app {
-      display: flex;
-      flex-direction: column;
-      height: 100dvh;
-      max-width: 430px;
-      margin: 0 auto;
-      position: relative;
+      display: flex; flex-direction: column;
+      height: 100dvh; max-width: 430px;
+      margin: 0 auto; position: relative;
     }
-
-    /* ── HUD ── */
+    /* HUD */
     #hud {
-      display: flex;
-      align-items: center;
+      display: flex; align-items: center;
       justify-content: space-between;
       padding: 12px 18px 8px;
       background: var(--surface);
       border-bottom: 2px solid #ffffff10;
       flex-shrink: 0;
     }
-
-    #hud .stat {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-    }
-
-    #hud .label {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      opacity: .5;
-    }
-
-    #hud .value {
-      font-size: 26px;
-      font-weight: 900;
-      line-height: 1;
-    }
-
-    #mistakesDisplay {
-      display: flex;
-      gap: 5px;
-    }
-
-    .heart {
-      font-size: 22px;
-      transition: transform .2s;
-    }
+    #hud .stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    #hud .label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; opacity: .5; }
+    #hud .value { font-size: 26px; font-weight: 900; line-height: 1; }
+    #mistakesDisplay { display: flex; gap: 5px; }
+    .heart { font-size: 22px; transition: transform .2s; }
     .heart.lost { filter: grayscale(1); opacity: .3; }
-
-    /* ── Target bar ── */
+    /* Target bar */
     #targetBar {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      padding: 10px 18px;
-      background: var(--card);
-      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px; padding: 10px 18px;
+      background: var(--card); flex-shrink: 0;
       border-bottom: 2px solid #ffffff10;
     }
-
-    #targetBar .label {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      opacity: .55;
-    }
-
+    #targetBar .label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; opacity: .55; }
     #colorSwatch {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
+      width: 32px; height: 32px; border-radius: 8px;
       border: 3px solid #ffffff40;
-      transition: background .3s, transform .2s;
-      flex-shrink: 0;
+      transition: background .3s, transform .2s; flex-shrink: 0;
     }
-    #colorSwatch.pulse {
-      animation: swatchPulse .35s ease;
-    }
+    #colorSwatch.pulse { animation: swatchPulse .35s ease; }
     @keyframes swatchPulse {
       0%   { transform: scale(1); }
       50%  { transform: scale(1.35); }
       100% { transform: scale(1); }
     }
-
-    #targetName {
-      font-size: 20px;
-      font-weight: 900;
-      min-width: 70px;
-      text-align: left;
-    }
-
-    /* ── Canvas wrapper ── */
-    #canvasWrap {
-      flex: 1;
-      position: relative;
-      overflow: hidden;
-    }
-
-    canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
-
-    /* ── Swipe arrows ── */
+    #targetName { font-size: 20px; font-weight: 900; min-width: 70px; text-align: left; }
+    /* Canvas */
+    #canvasWrap { flex: 1; position: relative; overflow: hidden; }
+    canvas { display: block; width: 100%; height: 100%; }
+    /* Arrows */
     #arrows {
-      position: absolute;
-      bottom: 0;
-      left: 0; right: 0;
-      display: flex;
-      pointer-events: none;
-      height: 56px;
-      justify-content: space-between;
-      padding: 0 24px;
-      align-items: center;
+      position: absolute; bottom: 0; left: 0; right: 0;
+      display: flex; pointer-events: none; height: 56px;
+      justify-content: space-between; padding: 0 24px; align-items: center;
     }
-
-    .arrow-hint {
-      font-size: 28px;
-      opacity: .15;
-    }
-
-    /* ── Overlay (game over / start) ── */
+    .arrow-hint { font-size: 28px; opacity: .15; }
+    /* Overlay */
     #overlay {
-      position: absolute;
-      inset: 0;
-      background: #0008;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      backdrop-filter: blur(6px);
-      z-index: 10;
+      position: absolute; inset: 0; background: #0009;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 20px; backdrop-filter: blur(6px); z-index: 10;
     }
-
-    #overlay h2 {
-      font-size: 36px;
-      font-weight: 900;
-      text-align: center;
-      line-height: 1.1;
+    #overlay h2 { font-size: 36px; font-weight: 900; text-align: center; line-height: 1.1; }
+    #overlay .big-score { font-size: 72px; font-weight: 900; color: var(--yellow); line-height: 1; }
+    #overlay .sub { font-size: 15px; opacity: .6; text-align: center; line-height: 1.6; }
+    /* How-to-play panel */
+    #howto {
+      background: #ffffff0f; border: 1px solid #ffffff18;
+      border-radius: 16px; padding: 14px 20px;
+      display: flex; flex-direction: column; gap: 8px;
+      max-width: 280px;
     }
-
-    #overlay .big-score {
-      font-size: 72px;
-      font-weight: 900;
-      color: var(--yellow);
-      line-height: 1;
-    }
-
-    #overlay .sub {
-      font-size: 15px;
-      opacity: .6;
-    }
-
+    #howto .row { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+    #howto .icon { font-size: 20px; width: 28px; text-align: center; }
     #playBtn {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 16px;
-      font-family: 'Nunito', sans-serif;
-      font-size: 20px;
-      font-weight: 900;
-      padding: 16px 48px;
-      cursor: pointer;
-      letter-spacing: .5px;
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 16px; font-family: 'Nunito', sans-serif;
+      font-size: 20px; font-weight: 900; padding: 16px 48px;
+      cursor: pointer; letter-spacing: .5px;
       box-shadow: 0 4px 24px #e9456066;
       transition: transform .15s, box-shadow .15s;
     }
-
     #playBtn:active { transform: scale(.95); box-shadow: none; }
-
-    /* ── Feedback toast ── */
+    /* Toast */
     #toast {
-      position: absolute;
-      top: 50%;
-      left: 50%;
+      position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%) scale(.8);
-      font-size: 52px;
-      font-weight: 900;
-      opacity: 0;
-      pointer-events: none;
-      z-index: 9;
-      transition: none;
+      font-size: 52px; font-weight: 900;
+      opacity: 0; pointer-events: none; z-index: 9;
     }
-    #toast.show {
-      animation: toastAnim .5s ease forwards;
-    }
+    #toast.show { animation: toastAnim .5s ease forwards; }
     @keyframes toastAnim {
       0%   { opacity: 1; transform: translate(-50%,-50%) scale(1); }
       70%  { opacity: 1; transform: translate(-50%,-80%) scale(1.2); }
       100% { opacity: 0; transform: translate(-50%,-100%) scale(1); }
     }
-
-    /* ── Combo badge ── */
+    /* Combo */
     #combo {
-      position: absolute;
-      top: 12px;
-      right: 14px;
-      font-size: 13px;
-      font-weight: 900;
-      background: var(--yellow);
-      color: #1a1a2e;
-      padding: 4px 10px;
-      border-radius: 999px;
-      opacity: 0;
-      transition: opacity .3s;
-      z-index: 8;
+      position: absolute; top: 12px; right: 14px;
+      font-size: 13px; font-weight: 900;
+      background: var(--yellow); color: #1a1a2e;
+      padding: 4px 10px; border-radius: 999px;
+      opacity: 0; transition: opacity .3s; z-index: 8;
     }
     #combo.visible { opacity: 1; }
+    /* Speed indicator */
+    #speedBar {
+      position: absolute; top: 12px; left: 14px;
+      font-size: 12px; font-weight: 700;
+      color: #ffffff60; z-index: 8;
+    }
   </style>
 </head>
 <body>
 <div id="app">
-
-  <!-- HUD -->
   <div id="hud">
     <div class="stat">
       <div class="label">分數</div>
       <div class="value" id="scoreDisplay">0</div>
+    </div>
+    <div class="stat">
+      <div class="label">目標</div>
+      <div class="value" id="hudTarget" style="font-size:16px">—</div>
     </div>
     <div class="stat">
       <div class="label">命</div>
@@ -265,14 +147,12 @@
     </div>
   </div>
 
-  <!-- Target -->
   <div id="targetBar">
-    <div class="label">目標</div>
+    <div class="label">撞這個顏色 →</div>
     <div id="colorSwatch"></div>
     <div id="targetName"></div>
   </div>
 
-  <!-- Game canvas -->
   <div id="canvasWrap">
     <canvas id="gameCanvas"></canvas>
     <div id="arrows">
@@ -281,24 +161,31 @@
     </div>
     <div id="toast"></div>
     <div id="combo"></div>
+    <div id="speedBar"></div>
 
-    <!-- Overlay -->
     <div id="overlay">
-      <h2>顏色<br>賽車</h2>
+      <h2 id="overlayTitle">顏色<br>賽車</h2>
       <div class="big-score" id="finalScore" style="display:none"></div>
-      <div class="sub" id="overlayMsg">滑動或點擊車道<br>撞對顏色的卡片！</div>
+
+      <div id="howto">
+        <div class="row"><span class="icon">🎯</span><span>上方顯示目標顏色</span></div>
+        <div class="row"><span class="icon">👆</span><span>滑動左右移動車子</span></div>
+        <div class="row"><span class="icon">✅</span><span>撞上<b>同色卡片</b>得分</span></div>
+        <div class="row"><span class="icon">❌</span><span>撞錯顏色或漏掉 -1 命</span></div>
+        <div class="row"><span class="icon">🏆</span><span>得 <b>15 分</b>過關！</span></div>
+      </div>
+
+      <div class="sub" id="overlayMsg"></div>
       <button id="playBtn">開始遊戲</button>
     </div>
   </div>
-
 </div>
 
 <script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const wrap = document.getElementById('canvasWrap');
+const canvas  = document.getElementById('gameCanvas');
+const ctx     = canvas.getContext('2d');
+const wrap    = document.getElementById('canvasWrap');
 
-// ── Resize canvas to fill wrapper ──
 function resizeCanvas() {
   canvas.width  = wrap.clientWidth;
   canvas.height = wrap.clientHeight;
@@ -306,7 +193,7 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
-// ── Color definitions ──
+// ── Colors ──
 const COLORS = [
   { id: 'red',    hex: '#FF3B30', name: '紅色' },
   { id: 'green',  hex: '#34C759', name: '綠色' },
@@ -316,40 +203,39 @@ const COLORS = [
 // ── State ──
 let score, mistakes, combo, gameRunning, animId;
 let car, cards, particles, roadOffset;
-let target;
+let target, framesSinceSpawn;
 
 // ── UI refs ──
-const scoreEl    = document.getElementById('scoreDisplay');
-const heartsEl   = [document.getElementById('h0'), document.getElementById('h1'), document.getElementById('h2')];
-const swatchEl   = document.getElementById('colorSwatch');
-const nameEl     = document.getElementById('targetName');
-const overlay    = document.getElementById('overlay');
+const scoreEl      = document.getElementById('scoreDisplay');
+const heartsEl     = [document.getElementById('h0'), document.getElementById('h1'), document.getElementById('h2')];
+const swatchEl     = document.getElementById('colorSwatch');
+const nameEl       = document.getElementById('targetName');
+const hudTargetEl  = document.getElementById('hudTarget');
+const overlay      = document.getElementById('overlay');
+const overlayTitle = document.getElementById('overlayTitle');
 const finalScoreEl = document.getElementById('finalScore');
-const overlayMsg = document.getElementById('overlayMsg');
-const playBtn    = document.getElementById('playBtn');
-const toastEl    = document.getElementById('toast');
-const comboEl    = document.getElementById('combo');
+const overlayMsg   = document.getElementById('overlayMsg');
+const howtoEl      = document.getElementById('howto');
+const playBtn      = document.getElementById('playBtn');
+const toastEl      = document.getElementById('toast');
+const comboEl      = document.getElementById('combo');
+const speedBarEl   = document.getElementById('speedBar');
 
 function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-// ── Init / reset ──
+// ── Init ──
 function initGame() {
-  score  = 0;
-  mistakes = 0;
-  combo  = 0;
-  cards  = [];
-  particles = [];
-  roadOffset = 0;
+  score = 0; mistakes = 0; combo = 0;
+  cards = []; particles = []; roadOffset = 0;
+  framesSinceSpawn = 0;
 
-  car = { lane: 1, x: 0, y: 0, w: 0, h: 0, wobble: 0 };
-
+  car = { lane: 1, targetLane: 1 };
   target = rand(COLORS);
   updateTargetUI();
   updateHUD();
-
   spawnCard();
-  gameRunning = true;
 
+  gameRunning = true;
   overlay.style.display = 'none';
   cancelAnimationFrame(animId);
   loop();
@@ -359,6 +245,8 @@ function updateTargetUI() {
   swatchEl.style.background = target.hex;
   nameEl.textContent = target.name;
   nameEl.style.color = target.hex;
+  hudTargetEl.textContent = target.name;
+  hudTargetEl.style.color = target.hex;
   swatchEl.classList.remove('pulse');
   void swatchEl.offsetWidth;
   swatchEl.classList.add('pulse');
@@ -366,19 +254,17 @@ function updateTargetUI() {
 
 function updateHUD() {
   scoreEl.textContent = score;
-  heartsEl.forEach((h, i) => {
-    h.classList.toggle('lost', i >= (3 - mistakes));
-  });
+  heartsEl.forEach((h, i) => h.classList.toggle('lost', i >= (3 - mistakes)));
 }
 
-// ── Card spawning ──
-const CARD_INTERVAL = 90; // frames between auto-spawns (if needed)
-let framesSinceSpawn = 0;
-
+// ── Spawn ──
 function spawnCard() {
-  const lane = Math.floor(Math.random() * 3);
-  const color = rand(COLORS);
-  cards.push({ lane, color, y: -60, speed: 4 + score * 0.18 });
+  // Ensure at least one card matches target color occasionally
+  const forceMatch = Math.random() < 0.45;
+  const color = forceMatch ? target : rand(COLORS);
+  const lane  = Math.floor(Math.random() * 3);
+  const speed = 2 + score * 0.08;
+  cards.push({ lane, color, y: -70, speed });
   framesSinceSpawn = 0;
 }
 
@@ -399,262 +285,231 @@ function spawnParticles(x, y, color, count = 16) {
   }
 }
 
-// ── Main loop ──
-function loop() {
-  if (!gameRunning) return;
-  animId = requestAnimationFrame(loop);
+// ── Draw car (top-down cute) ──
+function drawCar(carX, carY, carW, carH) {
+  const bw = carW, bh = carH;
+  const bx = carX - bw / 2, by = carY;
 
-  const W = canvas.width;
-  const H = canvas.height;
-  const laneW = W / 3;
-  const carW = laneW * .45;
-  const carH = carW * 1.5;
-  car.w = carW; car.h = carH;
-  car.x = car.lane * laneW + laneW / 2;
-  car.y = H - carH - 24;
-
-  // ── Draw background / road ──
-  ctx.fillStyle = '#1a1a2e';
-  ctx.fillRect(0, 0, W, H);
-
-  // road surface
-  ctx.fillStyle = '#232338';
-  ctx.fillRect(0, 0, W, H);
-
-  // scrolling road stripes
-  roadOffset = (roadOffset + 6) % 80;
-  ctx.strokeStyle = '#ffffff18';
-  ctx.lineWidth = 3;
-  ctx.setLineDash([40, 40]);
-  ctx.lineDashOffset = -roadOffset;
-  for (let l = 1; l < 3; l++) {
-    ctx.beginPath();
-    ctx.moveTo(l * laneW, 0);
-    ctx.lineTo(l * laneW, H);
-    ctx.stroke();
-  }
-  ctx.setLineDash([]);
-
-  // edge lines
-  ctx.strokeStyle = '#ffffff30';
-  ctx.lineWidth = 4;
-  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, H); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(W, 0); ctx.lineTo(W, H); ctx.stroke();
-
-  // ── Spawn logic ──
-  framesSinceSpawn++;
-  if (cards.length === 0 || (cards.length < 2 && framesSinceSpawn > 55)) {
-    spawnCard();
-  }
-
-  // ── Cards ──
-  cards.forEach(card => {
-    card.y += card.speed;
-    const cx = card.lane * laneW + laneW / 2;
-    const cw = laneW * .55;
-    const ch = cw;
-
-    // shadow
-    ctx.fillStyle = '#00000040';
-    ctx.beginPath();
-    ctx.roundRect(cx - cw/2 + 4, card.y + 4, cw, ch, 12);
-    ctx.fill();
-
-    // card body
-    ctx.fillStyle = card.color.hex;
-    ctx.beginPath();
-    ctx.roundRect(cx - cw/2, card.y, cw, ch, 12);
-    ctx.fill();
-
-    // shine
-    const grad = ctx.createLinearGradient(cx - cw/2, card.y, cx, card.y + ch/2);
-    grad.addColorStop(0, '#ffffff30');
-    grad.addColorStop(1, '#ffffff00');
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.roundRect(cx - cw/2, card.y, cw, ch, 12);
-    ctx.fill();
-  });
-
-  // ── Car (cute top-down cartoon) ──
-  const carX = car.x;
-  const carY = car.y;
-
-  function rr(x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.roundRect(x, y, w, h, r);
-  }
-
-  const bw = carW;       // body width
-  const bh = carH;       // body height
-  const bx = carX - bw/2;
-  const by = carY;
+  ctx.save();
 
   // shadow
   ctx.fillStyle = '#00000050';
   ctx.beginPath();
-  ctx.ellipse(carX, by + bh/2 + 6, bw * .45, bh * .18, 0, 0, Math.PI * 2);
+  ctx.ellipse(carX, by + bh/2 + 8, bw * .45, bh * .14, 0, 0, Math.PI*2);
   ctx.fill();
 
-  // wheels (drawn first, behind body)
+  // wheels
   const ww = bw * .22, wh = bh * .22, wr = 4;
-  ctx.fillStyle = '#1a1a1a';
-  // front-left
-  rr(bx - ww + 3, by + bh * .08, ww, wh, wr); ctx.fill();
-  // front-right
-  rr(bx + bw - 3, by + bh * .08, ww, wh, wr); ctx.fill();
-  // rear-left
-  rr(bx - ww + 3, by + bh * .70, ww, wh, wr); ctx.fill();
-  // rear-right
-  rr(bx + bw - 3, by + bh * .70, ww, wh, wr); ctx.fill();
-
-  // wheel shine
-  ctx.fillStyle = '#444';
-  rr(bx - ww + 5, by + bh * .09, ww - 4, wh - 4, 3); ctx.fill();
-  rr(bx + bw - 1, by + bh * .09, ww - 4, wh - 4, 3); ctx.fill();
-  rr(bx - ww + 5, by + bh * .71, ww - 4, wh - 4, 3); ctx.fill();
-  rr(bx + bw - 1, by + bh * .71, ww - 4, wh - 4, 3); ctx.fill();
+  const wheelColor = '#1a1a1a';
+  const positions = [
+    [bx - ww + 3, by + bh * .08],
+    [bx + bw - 3,  by + bh * .08],
+    [bx - ww + 3, by + bh * .70],
+    [bx + bw - 3,  by + bh * .70],
+  ];
+  positions.forEach(([wx, wy]) => {
+    ctx.fillStyle = wheelColor;
+    ctx.beginPath(); ctx.roundRect(wx, wy, ww, wh, wr); ctx.fill();
+    ctx.fillStyle = '#555';
+    ctx.beginPath(); ctx.roundRect(wx + 2, wy + 2, ww - 4, wh - 4, 3); ctx.fill();
+  });
 
   // body
   ctx.fillStyle = '#FF3B30';
-  rr(bx, by, bw, bh, 14); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 14); ctx.fill();
 
-  // body side stripes
+  // side stripe (clipped to body)
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 14); ctx.clip();
   ctx.fillStyle = '#CC1A10';
   ctx.fillRect(bx, by + bh * .42, bw, bh * .16);
-  rr(bx, by, bw, bh, 14);
-  ctx.clip(); // clip stripes inside body shape
-  ctx.fillStyle = '#CC1A10';
-  ctx.fillRect(bx, by + bh * .42, bw, bh * .16);
-  ctx.restore(); ctx.save();
+  ctx.restore();
 
-  // windshield (front, top area)
-  ctx.fillStyle = '#A8D8FF';
+  // windshield front
   ctx.globalAlpha = 0.85;
-  rr(bx + bw * .12, by + bh * .07, bw * .76, bh * .26, 8); ctx.fill();
+  ctx.fillStyle = '#A8D8FF';
+  ctx.beginPath(); ctx.roundRect(bx + bw*.12, by + bh*.07, bw*.76, bh*.26, 8); ctx.fill();
   ctx.globalAlpha = 1;
 
   // windshield shine
   ctx.fillStyle = '#ffffff55';
   ctx.beginPath();
-  ctx.ellipse(bx + bw * .3, by + bh * .14, bw * .14, bh * .07, -0.3, 0, Math.PI * 2);
+  ctx.ellipse(bx + bw*.30, by + bh*.14, bw*.14, bh*.07, -0.3, 0, Math.PI*2);
   ctx.fill();
 
-  // rear window (bottom area)
-  ctx.fillStyle = '#A8D8FF';
+  // rear window
   ctx.globalAlpha = 0.6;
-  rr(bx + bw * .16, by + bh * .68, bw * .68, bh * .20, 7); ctx.fill();
+  ctx.fillStyle = '#A8D8FF';
+  ctx.beginPath(); ctx.roundRect(bx + bw*.16, by + bh*.68, bw*.68, bh*.20, 7); ctx.fill();
   ctx.globalAlpha = 1;
 
-  // roof center panel
+  // roof center
+  ctx.globalAlpha = 0.45;
   ctx.fillStyle = '#BB1A10';
-  ctx.globalAlpha = 0.55;
-  rr(bx + bw * .14, by + bh * .34, bw * .72, bh * .32, 6); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(bx + bw*.14, by + bh*.34, bw*.72, bh*.32, 6); ctx.fill();
   ctx.globalAlpha = 1;
 
-  // headlights (two glowing dots at front)
+  // headlights
   ctx.fillStyle = '#FFFAAA';
-  ctx.shadowColor = '#FFEE88';
-  ctx.shadowBlur = 8;
-  ctx.beginPath(); ctx.arc(bx + bw * .22, by + bh * .10, bw * .09, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(bx + bw * .78, by + bh * .10, bw * .09, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowColor = '#FFEE88'; ctx.shadowBlur = 10;
+  ctx.beginPath(); ctx.arc(bx + bw*.22, by + bh*.10, bw*.09, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(bx + bw*.78, by + bh*.10, bw*.09, 0, Math.PI*2); ctx.fill();
   ctx.shadowBlur = 0;
 
-  // tail lights (red glow at rear)
+  // tail lights
   ctx.fillStyle = '#FF2200';
-  ctx.shadowColor = '#FF2200';
-  ctx.shadowBlur = 6;
-  ctx.beginPath(); ctx.arc(bx + bw * .22, by + bh * .90, bw * .08, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(bx + bw * .78, by + bh * .90, bw * .08, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowColor = '#FF2200'; ctx.shadowBlur = 8;
+  ctx.beginPath(); ctx.arc(bx + bw*.22, by + bh*.90, bw*.08, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(bx + bw*.78, by + bh*.90, bw*.08, 0, Math.PI*2); ctx.fill();
   ctx.shadowBlur = 0;
 
-  // cute face — eyes
-  // left eye
+  // eyes - left
   ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(bx + bw * .30, by + bh * .20, bw * .13, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(bx + bw*.30, by + bh*.20, bw*.13, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#1a1aee';
-  ctx.beginPath(); ctx.arc(bx + bw * .30, by + bh * .21, bw * .08, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(bx + bw*.30, by + bh*.21, bw*.08, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#000';
-  ctx.beginPath(); ctx.arc(bx + bw * .30, by + bh * .21, bw * .045, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(bx + bw*.30, by + bh*.21, bw*.045, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(bx + bw * .27, by + bh * .185, bw * .025, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(bx + bw*.27, by + bh*.185, bw*.025, 0, Math.PI*2); ctx.fill();
 
-  // right eye
+  // eyes - right
   ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(bx + bw * .70, by + bh * .20, bw * .13, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(bx + bw*.70, by + bh*.20, bw*.13, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#1a1aee';
-  ctx.beginPath(); ctx.arc(bx + bw * .70, by + bh * .21, bw * .08, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(bx + bw*.70, by + bh*.21, bw*.08, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#000';
-  ctx.beginPath(); ctx.arc(bx + bw * .70, by + bh * .21, bw * .045, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(bx + bw*.70, by + bh*.21, bw*.045, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(bx + bw * .67, by + bh * .185, bw * .025, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(bx + bw*.67, by + bh*.185, bw*.025, 0, Math.PI*2); ctx.fill();
 
   // smile
-  ctx.strokeStyle = '#CC1A10';
-  ctx.lineWidth = 2.5;
-  ctx.lineCap = 'round';
+  ctx.strokeStyle = '#CC1A10'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
   ctx.beginPath();
-  ctx.arc(carX, by + bh * .285, bw * .18, 0.2, Math.PI - 0.2);
+  ctx.arc(carX, by + bh*.285, bw*.18, 0.2, Math.PI - 0.2);
   ctx.stroke();
 
-  // blush cheeks
-  ctx.fillStyle = '#FF8888';
-  ctx.globalAlpha = 0.3;
-  ctx.beginPath(); ctx.ellipse(bx + bw * .18, by + bh * .275, bw * .10, bh * .04, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(bx + bw * .82, by + bh * .275, bw * .10, bh * .04, 0, 0, Math.PI * 2); ctx.fill();
+  // blush
+  ctx.globalAlpha = 0.3; ctx.fillStyle = '#FF8888';
+  ctx.beginPath(); ctx.ellipse(bx + bw*.18, by + bh*.275, bw*.10, bh*.04, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(bx + bw*.82, by + bh*.275, bw*.10, bh*.04, 0, 0, Math.PI*2); ctx.fill();
   ctx.globalAlpha = 1;
 
-  // ── Collision check ──
+  ctx.restore();
+}
+
+// ── Main loop ──
+function loop() {
+  if (!gameRunning) return;
+  animId = requestAnimationFrame(loop);
+
+  const W = canvas.width, H = canvas.height;
+  const laneW = W / 3;
+  const carW  = laneW * .45;
+  const carH  = carW * 1.5;
+  const carX  = car.lane * laneW + laneW / 2;
+  const carY  = H - carH - 24;
+
+  // background
+  ctx.fillStyle = '#1e1e35';
+  ctx.fillRect(0, 0, W, H);
+
+  // road
+  ctx.fillStyle = '#252540';
+  ctx.fillRect(0, 0, W, H);
+
+  // scrolling dashes
+  roadOffset = (roadOffset + 4) % 80;
+  ctx.strokeStyle = '#ffffff18'; ctx.lineWidth = 3;
+  ctx.setLineDash([40, 40]); ctx.lineDashOffset = -roadOffset;
+  for (let l = 1; l < 3; l++) {
+    ctx.beginPath(); ctx.moveTo(l * laneW, 0); ctx.lineTo(l * laneW, H); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // edge lines
+  ctx.strokeStyle = '#ffffff30'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(2, 0); ctx.lineTo(2, H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W-2, 0); ctx.lineTo(W-2, H); ctx.stroke();
+
+  // ── Spawn logic ──
+  framesSinceSpawn++;
+  const maxCards = score < 5 ? 2 : 3;
+  const spawnGap = Math.max(55, 100 - score * 2);
+  if (cards.length < maxCards && framesSinceSpawn > spawnGap) {
+    spawnCard();
+  }
+
+  // ── Draw cards ──
+  cards.forEach(card => {
+    card.y += card.speed;
+    const cx = card.lane * laneW + laneW / 2;
+    const cw = laneW * .58, ch = cw;
+
+    // shadow
+    ctx.fillStyle = '#00000040';
+    ctx.beginPath(); ctx.roundRect(cx - cw/2 + 5, card.y + 5, cw, ch, 14); ctx.fill();
+
+    // card body
+    ctx.fillStyle = card.color.hex;
+    ctx.beginPath(); ctx.roundRect(cx - cw/2, card.y, cw, ch, 14); ctx.fill();
+
+    // shine overlay
+    const g = ctx.createLinearGradient(cx - cw/2, card.y, cx, card.y + ch/2);
+    g.addColorStop(0, '#ffffff35'); g.addColorStop(1, '#ffffff00');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.roundRect(cx - cw/2, card.y, cw, ch, 14); ctx.fill();
+
+    // color name label on card
+    ctx.fillStyle = '#00000060';
+    ctx.font = `bold ${cw * .22}px Nunito, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(card.color.name, cx, card.y + ch / 2);
+  });
+
+  // ── Draw car ──
+  drawCar(carX, carY, carW, carH);
+
+  // ── Collision detection ──
   cards = cards.filter(card => {
     const cx = card.lane * laneW + laneW / 2;
-    const cw = laneW * .55;
-    const ch = cw;
+    const cw = laneW * .58, ch = cw;
 
-    // miss (fell off screen)
+    // fell off screen — if it was the target color, penalise
     if (card.y > H + 10) {
       if (card.color.id === target.id) {
-        // missed correct card
         mistakes++;
-        updateHUD();
         combo = 0;
-        updateCombo();
-        showToast('💨', card.lane * laneW + laneW/2, H * .4);
+        updateHUD(); updateCombo();
+        showToast('💨', cx, H * .5);
         checkGameOver();
-        nextTarget();
+        if (gameRunning) { nextTarget(); spawnCard(); }
       }
       return false;
     }
 
-    // collision with car
+    // same lane collision
     if (card.lane === car.lane) {
       const cardBottom = card.y + ch;
-      const cardTop    = card.y;
-      const carTop     = carY;
-      const carBottom  = carY + carH;
-
-      if (cardBottom >= carTop && cardTop <= carBottom) {
-        const hitX = cx;
-        const hitY = card.y + ch/2;
-
+      if (cardBottom >= carY && card.y <= carY + carH) {
+        const hitX = cx, hitY = card.y + ch / 2;
         if (card.color.id === target.id) {
-          // ✅ correct!
           combo++;
           score += combo > 2 ? 2 : 1;
-          updateHUD();
-          updateCombo();
-          spawnParticles(hitX, hitY, card.color.hex, 20);
+          updateHUD(); updateCombo();
+          spawnParticles(hitX, hitY, card.color.hex, 22);
           showToast('✓', hitX, hitY);
+          if (score >= 15) { endGame(true); return false; }
         } else {
-          // ❌ wrong
           mistakes++;
           combo = 0;
-          updateHUD();
-          updateCombo();
-          spawnParticles(hitX, hitY, '#FF3B30', 12);
+          updateHUD(); updateCombo();
+          spawnParticles(hitX, hitY, '#FF3B30', 14);
           showToast('✗', hitX, hitY);
           checkGameOver();
         }
-        nextTarget();
+        if (gameRunning) { nextTarget(); spawnCard(); }
         return false;
       }
     }
@@ -663,23 +518,17 @@ function loop() {
 
   // ── Particles ──
   particles = particles.filter(p => {
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vy += .15;
+    p.x += p.vx; p.y += p.vy; p.vy += .15;
     p.life -= p.decay;
     ctx.globalAlpha = p.life;
     ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI*2); ctx.fill();
     ctx.globalAlpha = 1;
     return p.life > 0;
   });
 
-  // ── Win condition ──
-  if (score >= 15) {
-    endGame(true);
-  }
+  // Speed indicator
+  speedBarEl.textContent = `⚡ Lv.${Math.min(score+1,15)}`;
 }
 
 function nextTarget() {
@@ -688,35 +537,34 @@ function nextTarget() {
 }
 
 function checkGameOver() {
-  if (mistakes >= 3) {
-    endGame(false);
-  }
+  if (mistakes >= 3) endGame(false);
 }
 
 function endGame(win) {
   gameRunning = false;
   overlay.style.display = 'flex';
+  howtoEl.style.display = 'none';
+  overlayTitle.textContent = win ? '🎉 過關！' : '遊戲結束';
   finalScoreEl.style.display = 'block';
   finalScoreEl.textContent = score;
-  overlayMsg.textContent = win ? '🎉 完美通關！' : `闖關失敗，加油！`;
+  overlayMsg.textContent = win ? '完美通關！你太厲害了！' : `差一點點，再試一次！`;
   playBtn.textContent = '再玩一次';
 }
 
-// ── Toast feedback ──
+// ── Toast ──
 let toastTimeout;
 function showToast(text, x, y) {
   clearTimeout(toastTimeout);
   toastEl.textContent = text;
   toastEl.style.left = x + 'px';
   toastEl.style.top  = y + 'px';
-  toastEl.style.transform = 'translate(-50%,-50%) scale(.8)';
   toastEl.classList.remove('show');
   void toastEl.offsetWidth;
   toastEl.classList.add('show');
   toastTimeout = setTimeout(() => toastEl.classList.remove('show'), 600);
 }
 
-// ── Combo display ──
+// ── Combo ──
 function updateCombo() {
   if (combo >= 2) {
     comboEl.textContent = `🔥 x${combo} 連擊`;
@@ -726,23 +574,21 @@ function updateCombo() {
   }
 }
 
-// ── Input: touch swipe / tap ──
-let touchStartX = 0, touchStartY = 0;
-let isDragging = false;
+// ── Touch input ──
+let touchStartX = 0, touchMoved = false;
 
 canvas.addEventListener('touchstart', e => {
   e.preventDefault();
   touchStartX = e.touches[0].clientX;
-  touchStartY = e.touches[0].clientY;
-  isDragging = false;
+  touchMoved = false;
 }, { passive: false });
 
 canvas.addEventListener('touchmove', e => {
   e.preventDefault();
   if (!gameRunning) return;
-  isDragging = true;
   const dx = e.touches[0].clientX - touchStartX;
-  if (Math.abs(dx) > 20) {
+  if (Math.abs(dx) > 22) {
+    touchMoved = true;
     if (dx > 0 && car.lane < 2) { car.lane++; touchStartX = e.touches[0].clientX; }
     if (dx < 0 && car.lane > 0) { car.lane--; touchStartX = e.touches[0].clientX; }
   }
@@ -750,25 +596,23 @@ canvas.addEventListener('touchmove', e => {
 
 canvas.addEventListener('touchend', e => {
   e.preventDefault();
-  if (!gameRunning || isDragging) return;
-  // tap to lane
+  if (!gameRunning || touchMoved) return;
   const rect = canvas.getBoundingClientRect();
   const tx = e.changedTouches[0].clientX - rect.left;
-  const laneW = canvas.width / 3;
-  car.lane = Math.min(2, Math.floor(tx / laneW));
+  car.lane = Math.min(2, Math.floor(tx / (canvas.width / 3)));
 }, { passive: false });
 
-// ── Keyboard fallback ──
+// ── Keyboard ──
 document.addEventListener('keydown', e => {
   if (!gameRunning) return;
-  if (e.key === 'ArrowLeft'  && car.lane > 0) car.lane--;
-  if (e.key === 'ArrowRight' && car.lane < 2) car.lane++;
+  if ((e.key === 'ArrowLeft'  || e.key === 'a') && car.lane > 0) car.lane--;
+  if ((e.key === 'ArrowRight' || e.key === 'd') && car.lane < 2) car.lane++;
 });
 
-// ── Start button ──
+// ── Start ──
 playBtn.addEventListener('click', initGame);
 
-// ── Polyfill roundRect for older browsers ──
+// ── Polyfill roundRect ──
 if (!CanvasRenderingContext2D.prototype.roundRect) {
   CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
     const rad = typeof r === 'number' ? [r,r,r,r] : r;
